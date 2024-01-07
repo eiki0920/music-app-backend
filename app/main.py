@@ -62,12 +62,16 @@ def get_posts_all(db: Session = Depends(get_db)):
     posts = crud.get_all_posts(db=db)
     return posts
 
-@app.get("/posts/{post_id}", response_model=schemas.Post)
+@app.get("/posts/{post_id}/", response_model=schemas.Post)
 def get_post_by_id(post_id: int, db: Session = Depends(get_db)):
     post = crud.get_post_by_id(db=db, post_id=post_id)
     return post
         
 
-# @app.delete("posts/{post_id}", response_model=None)
-# def delete_post(post_id: int, db: Session = Depends(get_db)):
-#     post = crud.
+@app.delete("/posts/{post_id}/", response_model=None)
+def delete_post(post_id: int, db: Session = Depends(get_db)):
+    post = crud.get_post_by_id(db, post_id=post_id)
+    if post is None:
+        raise HTTPException(status_code=404, detail="Post not found")
+    
+    return crud.delete_post(db, post=post)
