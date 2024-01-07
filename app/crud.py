@@ -32,4 +32,7 @@ def create_post(db: Session, post: schemas.PostCreate, user_id: int):
     db.refresh(new_post)
     return new_post
 
+def get_post_by_id(db: Session, post_id: int):
+    return db.query(models.Post).filter(models.Post.id == post_id).first()
+
 # def delete_post(db: Session, )

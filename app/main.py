@@ -61,6 +61,11 @@ def get_tasks_for_user(user_id: int, skip: int = 0, limit: int = 100, db: Sessio
 def get_posts_all(db: Session = Depends(get_db)):
     posts = crud.get_all_posts(db=db)
     return posts
+
+@app.get("/posts/{post_id}", response_model=schemas.Post)
+def get_post_by_id(post_id: int, db: Session = Depends(get_db)):
+    post = crud.get_post_by_id(db=db, post_id=post_id)
+    return post
         
 
 # @app.delete("posts/{post_id}", response_model=None)
