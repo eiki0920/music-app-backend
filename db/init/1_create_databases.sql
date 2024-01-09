@@ -1,1 +1,0 @@
-CREATE DATABASE fastapi_music_app_development;

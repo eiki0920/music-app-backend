@@ -2,12 +2,13 @@ from fastapi import Depends, FastAPI, HTTPException
 from sqlalchemy.orm import Session
 from starlette.middleware.cors import CORSMiddleware
 
-from . import crud, models, schemas
+from . import crud, models, schemas,auth
 from .database import SessionLocal, engine
 
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
+app.include_router(auth.router)
 
 app.add_middleware(
     CORSMiddleware,
@@ -26,11 +27,15 @@ def get_db():
 
 @app.post("/users/", response_model=schemas.User)
 def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
-    db_user = crud.get_user_by_name(db, name=user.name)
+    db_user = crud.get_user_by_name(db, username=user.username)
     if db_user:
-        raise HTTPException(status_code=400, detail=f"User name: {user.name} already exists.")
+        raise HTTPException(status_code=400, detail=f"User name: {user.username} already exists.")
     
     return crud.create_user(db=db, user=user)
+
+@app.get("/users/me", response_model=schemas.User)
+async def read_users_me(current_user: schemas.User = Depends(auth.get_current_active_user)):
+    return current_user
 
 
 @app.get("/users/", response_model=list[schemas.User])
@@ -46,9 +51,9 @@ def get_user(user_id: int, db: Session = Depends(get_db)):
     
     return user
 
-@app.post("/users/{user_id}/posts/", response_model=schemas.Post)
-def create_task_for_user(user_id: int, post: schemas.PostCreate, db: Session = Depends(get_db)):
-    task = crud.create_post(db=db, post=post, user_id=user_id)
+@app.post("/users/posts/", response_model=schemas.Post)
+def create_task_for_user(post: schemas.PostCreate, db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_user)):
+    task = crud.create_post(db=db, post=post, user_id=current_user.id)
     return task
 
 
@@ -75,3 +80,4 @@ def delete_post(post_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Post not found")
     
     return crud.delete_post(db, post=post)
+

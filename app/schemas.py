@@ -24,17 +24,27 @@ class Post(PostBase):
 
 
 class UserBase(BaseModel):
-    name: str
+    username: str
 
 
 class UserCreate(UserBase):
-    pass
+    password: str
 
 
 class User(UserBase):
     id: int
     created_at: datetime
+    is_active: bool
+    hashed_password: str
     posts: list[Post] = []
 
     class Config:
         orm_mode = True
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+
+class TokenData(BaseModel):
+    username: str | None = None
