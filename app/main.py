@@ -38,14 +38,14 @@ async def read_users_me(current_user: schemas.User = Depends(auth.get_current_ac
     return current_user
 
 
-@app.get("/users/", response_model=list[schemas.User])
+@app.get("/users/")
 def get_users(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     users = crud.get_users(db, skip=skip, limit=limit)
     return users
 
 @app.get("/users/{user_id}", response_model=schemas.User)
 def get_user(user_id: int, db: Session = Depends(get_db)):
-    user = crud.get_user(db, user_id=user_id)
+    user = crud.get_user_by_id(db, user_id=user_id)
     if not user:
         raise HTTPException(status_code=404, detail=f"User ID: {user_id} not found")
     
@@ -62,12 +62,12 @@ def get_tasks_for_user(user_id: int, skip: int = 0, limit: int = 100, db: Sessio
     posts = crud.get_posts(db=db, user_id=user_id, skip=skip, limit=limit)
     return posts
 
-@app.get("/posts/", response_model=list[schemas.Post])
+@app.get("/posts/")
 def get_posts_all(db: Session = Depends(get_db)):
     posts = crud.get_all_posts(db=db)
     return posts
 
-@app.get("/posts/{post_id}/", response_model=schemas.Post)
+@app.get("/posts/{post_id}/")
 def get_post_by_id(post_id: int, db: Session = Depends(get_db)):
     post = crud.get_post_by_id(db=db, post_id=post_id)
     return post

@@ -1,4 +1,4 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from . import models, schemas
 
@@ -30,9 +30,9 @@ def get_posts(db: Session, user_id: int, skip: int = 0, limit: int = 100):
     return db.query(models.Post).filter(models.Post.user_id == user_id).offset(skip).limit(limit).all()
 
 def get_all_posts(db: Session):
-    return db.query(models.Post).all()
+    return db.query(models.Post).options(joinedload(models.Post.user)).all()
 
-def create_post(db: Session, post: schemas.PostCreate, user_id: models.User):
+def create_post(db: Session, post: schemas.PostCreate, user_id: int):
     new_post = models.Post(**post.dict(), user_id=user_id)
     db.add(new_post)
     db.commit()
@@ -40,7 +40,10 @@ def create_post(db: Session, post: schemas.PostCreate, user_id: models.User):
     return new_post
 
 def get_post_by_id(db: Session, post_id: int):
-    return db.query(models.Post).filter(models.Post.id == post_id).first()
+    post = db.query(models.Post).filter(models.Post.id == post_id).first()
+    user = db.query(models.User).filter(models.User.id == post.user_id).first()
+    return post, user
+
 
 def delete_post(db: Session, post: schemas.Post):
     db.delete(post)
